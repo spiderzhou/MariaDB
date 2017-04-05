@@ -1,0 +1,3 @@
+# AUTO_INCREMENT IN VCOL
+create or replace table t1( c1 int auto_increment primary key, check( c1 > 0 or c1 is null ) );
+ERROR HY000: Auto-increment column `c1` may not be used in an expression for a check constraint, a default value or a generated column.

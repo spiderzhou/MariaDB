@@ -1,0 +1,7 @@
+#
+# An auto-increment column may not be used in an expression for
+# a check constraint: MDEV-11117
+#
+--echo # AUTO_INCREMENT IN VCOL
+-- error ER_AUTOINC_IN_VIRTUAL_COLUMN_FUNCTION
+create or replace table t1( c1 int auto_increment primary key, check( c1 > 0 or c1 is null ) );

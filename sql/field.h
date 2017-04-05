@@ -591,7 +591,8 @@ static inline const char *vcol_type_name(enum_vcol_info_type type)
 #define VCOL_NON_DETERMINISTIC 2
 #define VCOL_SESSION_FUNC      4  /* uses session data, e.g. USER or DAYNAME */
 #define VCOL_TIME_FUNC         8
-#define VCOL_IMPOSSIBLE       16
+#define VCOL_AUTO_INC         16
+#define VCOL_IMPOSSIBLE       32
 
 #define VCOL_NOT_STRICTLY_DETERMINISTIC                       \
   (VCOL_NON_DETERMINISTIC | VCOL_TIME_FUNC | VCOL_SESSION_FUNC)

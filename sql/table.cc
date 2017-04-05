@@ -2811,6 +2811,19 @@ static bool fix_and_check_vcol_expr(THD *thd, TABLE *table,
              "???", "?????");
     DBUG_RETURN(1);
   }
+  else if (res.errors & VCOL_AUTO_INC)
+  {
+    /*
+      An auto_increment field may not be used in an expression for
+      a check constraint, a default value or a generated column
+
+      Note that this error condition is not detected during parsing
+      of the statement because the field item does not have a field
+      pointer at that time
+    */
+    my_error(ER_AUTOINC_IN_VIRTUAL_COLUMN_FUNCTION, MYF(0), res.name);
+    DBUG_RETURN(1);
+  }
   vcol->flags= res.errors;
 
   if (vcol->flags & VCOL_SESSION_FUNC)

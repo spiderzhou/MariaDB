@@ -7142,6 +7142,8 @@ ER_NO_EIS_FOR_FIELD
 ER_WARN_AGGFUNC_DEPENDENCE
         eng "Aggregate function '%-.192s)' of SELECT #%d belongs to SELECT #%d"
         ukr "Агрегатна функція '%-.192s)' з SELECTу #%d належить до SELECTу #%d"
+ER_AUTOINC_IN_VIRTUAL_COLUMN_FUNCTION
+        eng "Auto-increment column %`s may not be used in an expression for a check constraint, a default value or a generated column."
 
 #
 # Internal errors, not used
