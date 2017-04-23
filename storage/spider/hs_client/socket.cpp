@@ -3,11 +3,12 @@
 
 /*
  * Copyright (C) 2010-2011 DeNA Co.,Ltd.. All rights reserved.
- * Copyright (C) 2011 Kentoku SHIBA
+ * Copyright (C) 2011-2017 Kentoku SHIBA
  * See COPYRIGHT.txt for details.
  */
 
 #include <my_global.h>
+#include <my_config.h>
 #ifndef __WIN__
 #include <sys/types.h>
 #include <sys/un.h>

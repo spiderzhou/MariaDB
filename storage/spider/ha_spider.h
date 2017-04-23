@@ -1,4 +1,4 @@
-/* Copyright (C) 2008-2015 Kentoku Shiba
+/* Copyright (C) 2008-2017 Kentoku Shiba
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -17,17 +17,13 @@
 #pragma interface
 #endif
 
-#if (defined(MARIADB_BASE_VERSION) && MYSQL_VERSION_ID >= 100000)
-#define SPIDER_HANDLER_START_BULK_INSERT_HAS_FLAGS
+#if (defined(MARIADB_BASE_VERSION) && MYSQL_VERSION_ID >= 100203)
+#define HANDLER_HAS_TOP_TABLE_FIELDS
+#define HA_EXTRA_HAS_STARTING_ORDERED_INDEX_SCAN
 #endif
 
-#if MYSQL_VERSION_ID >=	100203
-#define HANDLER_HAS_TOP_TABLE_FIELDS
-#define PARTITION_HAS_EXTRA_ATTACH_CHILDREN
-#define PARTITION_HAS_GET_CHILD_HANDLERS
-#define PARTITION_HAS_EXTRA_ATTACH_CHILDREN
-#define PARTITION_HAS_GET_CHILD_HANDLERS
-#define HA_EXTRA_HAS_STARTING_ORDERED_INDEX_SCAN
+#if (defined(MARIADB_BASE_VERSION) && MYSQL_VERSION_ID >= 100000)
+#define SPIDER_HANDLER_START_BULK_INSERT_HAS_FLAGS
 #endif
 
 #define SPIDER_CONNECT_INFO_MAX_LEN 64
@@ -141,6 +137,14 @@ public:
 
   bool               da_status;
   bool               use_spatial_index;
+
+#ifdef SPIDER_HAS_GROUP_BY_HANDLER
+  uint                  idx_for_direct_join;
+  bool                  use_fields;
+  spider_fields         *fields;
+  SPIDER_LINK_IDX_CHAIN *link_idx_chain;
+  SPIDER_LINK_IDX_CHAIN *result_link_idx_chain;
+#endif
 
   /* for mrr */
   bool               mrr_with_cnt;
@@ -259,6 +263,11 @@ public:
 
   /* for dbton */
   spider_db_handler  **dbton_handler;
+
+  /* for direct limit offset */
+  longlong direct_select_offset;
+  longlong direct_current_offset;
+  longlong direct_select_limit;
 
   ha_spider();
   ha_spider(
@@ -761,7 +770,9 @@ public:
   uint check_partitioned();
   void check_direct_order_limit();
   void check_distinct_key_query();
-  bool is_sole_projection_field( uint16 field_index );
+  bool is_sole_projection_field(
+    uint16 field_index
+  );
   int check_ha_range_eof();
   int drop_tmp_tables();
   bool handler_opened(

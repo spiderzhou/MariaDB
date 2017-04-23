@@ -1,4 +1,4 @@
-/* Copyright (C) 2009-2014 Kentoku Shiba
+/* Copyright (C) 2009-2017 Kentoku Shiba
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -14,6 +14,7 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA */
 
 #define MYSQL_SERVER 1
+#include <my_global.h>
 #include "mysql_version.h"
 #if MYSQL_VERSION_ID < 50500
 #include "mysql_priv.h"
@@ -991,6 +992,8 @@ long long spider_copy_tables_body(
   reprepare_observer_backup = thd->m_reprepare_observer;
   thd->m_reprepare_observer = NULL;
   copy_tables->trx->trx_start = TRUE;
+  copy_tables->trx->updated_in_this_trx = FALSE;
+  DBUG_PRINT("info",("spider trx->updated_in_this_trx=FALSE"));
 #if MYSQL_VERSION_ID < 50500
   if (open_and_lock_tables(thd, table_list))
 #else
@@ -1006,6 +1009,8 @@ long long spider_copy_tables_body(
   {
     thd->m_reprepare_observer = reprepare_observer_backup;
     copy_tables->trx->trx_start = FALSE;
+    copy_tables->trx->updated_in_this_trx = FALSE;
+    DBUG_PRINT("info",("spider trx->updated_in_this_trx=FALSE"));
     my_printf_error(ER_SPIDER_UDF_CANT_OPEN_TABLE_NUM,
       ER_SPIDER_UDF_CANT_OPEN_TABLE_STR, MYF(0), table_list->db,
       table_list->table_name);
@@ -1013,6 +1018,8 @@ long long spider_copy_tables_body(
   }
   thd->m_reprepare_observer = reprepare_observer_backup;
   copy_tables->trx->trx_start = FALSE;
+  copy_tables->trx->updated_in_this_trx = FALSE;
+  DBUG_PRINT("info",("spider trx->updated_in_this_trx=FALSE"));
 
   table = table_list->table;
   table_share = table->s;
