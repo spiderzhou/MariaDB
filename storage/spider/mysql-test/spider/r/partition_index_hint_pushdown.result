@@ -1,0 +1,138 @@
+for master_1
+for child2
+child2_1
+child2_2
+child2_3
+for child3
+child3_1
+child3_2
+child3_3
+connection master_1;
+SET @old_index_hint_pushdown = @@session.spider_index_hint_pushdown;
+
+drop and create databases
+connection master_1;
+DROP DATABASE IF EXISTS auto_test_local;
+CREATE DATABASE auto_test_local;
+USE auto_test_local;
+connection child2_1;
+SET @old_log_output = @@global.log_output;
+SET GLOBAL log_output = 'TABLE,FILE';
+DROP DATABASE IF EXISTS auto_test_remote;
+CREATE DATABASE auto_test_remote;
+USE auto_test_remote;
+connection child2_2;
+SET @old_log_output = @@global.log_output;
+SET GLOBAL log_output = 'TABLE,FILE';
+DROP DATABASE IF EXISTS auto_test_remote2;
+CREATE DATABASE auto_test_remote2;
+USE auto_test_remote2;
+connection child2_3;
+SET @old_log_output = @@global.log_output;
+SET GLOBAL log_output = 'TABLE,FILE';
+DROP DATABASE IF EXISTS auto_test_remote3;
+CREATE DATABASE auto_test_remote3;
+USE auto_test_remote3;
+
+create table and insert
+connection child2_1;
+CHILD2_1_DROP_TABLES
+CHILD2_1_CREATE_TABLES
+TRUNCATE TABLE mysql.general_log;
+connection child2_2;
+CHILD2_2_DROP_TABLES
+CHILD2_2_CREATE_TABLES
+TRUNCATE TABLE mysql.general_log;
+connection child2_3;
+CHILD2_3_DROP_TABLES
+CHILD2_3_CREATE_TABLES
+TRUNCATE TABLE mysql.general_log;
+connection master_1;
+DROP TABLE IF EXISTS tbl_a;
+DROP TABLE IF EXISTS tbl_b;
+CREATE TABLE tbl_a (
+value int NOT NULL,
+PRIMARY KEY(value)
+) MASTER_1_ENGINE MASTER_1_CHARSET MASTER_1_COMMENT_2_1
+connection master_1;
+SET spider_index_hint_pushdown=0;
+SELECT value FROM tbl_a FORCE INDEX(PRIMARY);
+value
+connection child2_1;
+SELECT argument FROM mysql.general_log WHERE argument LIKE '%select %';
+argument
+select `value` from `auto_test_remote`.`tbl_a` order by `value`
+SELECT argument FROM mysql.general_log WHERE argument LIKE '%select %'
+TRUNCATE TABLE mysql.general_log;
+SELECT value FROM tbl_a ORDER BY value;
+value
+connection child2_2;
+SELECT argument FROM mysql.general_log WHERE argument LIKE '%select %';
+argument
+select `value` from `auto_test_remote2`.`tbl_a` order by `value`
+SELECT argument FROM mysql.general_log WHERE argument LIKE '%select %'
+TRUNCATE TABLE mysql.general_log;
+SELECT value FROM tbl_a ORDER BY value;
+value
+connection child2_3;
+SELECT argument FROM mysql.general_log WHERE argument LIKE '%select %';
+argument
+select `value` from `auto_test_remote3`.`tbl_a` order by `value`
+SELECT argument FROM mysql.general_log WHERE argument LIKE '%select %'
+TRUNCATE TABLE mysql.general_log;
+SELECT value FROM tbl_a ORDER BY value;
+value
+connection master_1;
+SET spider_index_hint_pushdown=1;
+SELECT value FROM tbl_a FORCE INDEX(PRIMARY);
+value
+connection child2_1;
+SELECT argument FROM mysql.general_log WHERE argument LIKE '%select %';
+argument
+SELECT value FROM tbl_a ORDER BY value
+select `value` from `auto_test_remote`.`tbl_a` FORCE INDEX (PRIMARY) order by `value`
+SELECT argument FROM mysql.general_log WHERE argument LIKE '%select %'
+SELECT value FROM tbl_a ORDER BY value;
+value
+connection child2_2;
+SELECT argument FROM mysql.general_log WHERE argument LIKE '%select %';
+argument
+SELECT value FROM tbl_a ORDER BY value
+select `value` from `auto_test_remote2`.`tbl_a` FORCE INDEX (PRIMARY) order by `value`
+SELECT argument FROM mysql.general_log WHERE argument LIKE '%select %'
+SELECT value FROM tbl_a ORDER BY value;
+value
+connection child2_3;
+SELECT argument FROM mysql.general_log WHERE argument LIKE '%select %';
+argument
+SELECT value FROM tbl_a ORDER BY value
+select `value` from `auto_test_remote3`.`tbl_a` FORCE INDEX (PRIMARY) order by `value`
+SELECT argument FROM mysql.general_log WHERE argument LIKE '%select %'
+SELECT value FROM tbl_a ORDER BY value;
+value
+
+deinit
+connection master_1;
+DROP DATABASE IF EXISTS auto_test_local;
+connection child2_1;
+DROP DATABASE IF EXISTS auto_test_remote;
+SET GLOBAL log_output = @old_log_output;
+connection child2_2;
+DROP DATABASE IF EXISTS auto_test_remote2;
+SET GLOBAL log_output = @old_log_output;
+connection child2_3;
+DROP DATABASE IF EXISTS auto_test_remote3;
+SET GLOBAL log_output = @old_log_output;
+connection master_1;
+SET spider_index_hint_pushdown = @old_index_hint_pushdown;
+for master_1
+for child2
+child2_1
+child2_2
+child2_3
+for child3
+child3_1
+child3_2
+child3_3
+
+end of test

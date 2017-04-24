@@ -1,0 +1,223 @@
+for master_1
+for child2
+child2_1
+child2_2
+child2_3
+for child3
+child3_1
+child3_2
+child3_3
+connection master_1;
+SET @old_skip_parallel_search = @@session.spider_skip_parallel_search;
+
+drop and create databases
+connection master_1;
+DROP DATABASE IF EXISTS auto_test_local;
+CREATE DATABASE auto_test_local;
+USE auto_test_local;
+connection child2_1;
+SET @old_log_output = @@global.log_output;
+SET GLOBAL log_output = 'TABLE,FILE';
+DROP DATABASE IF EXISTS auto_test_remote;
+CREATE DATABASE auto_test_remote;
+USE auto_test_remote;
+connection child2_2;
+SET @old_log_output = @@global.log_output;
+SET GLOBAL log_output = 'TABLE,FILE';
+DROP DATABASE IF EXISTS auto_test_remote2;
+CREATE DATABASE auto_test_remote2;
+USE auto_test_remote2;
+connection child2_3;
+SET @old_log_output = @@global.log_output;
+SET GLOBAL log_output = 'TABLE,FILE';
+DROP DATABASE IF EXISTS auto_test_remote3;
+CREATE DATABASE auto_test_remote3;
+USE auto_test_remote3;
+
+create table and insert
+connection child2_1;
+CHILD2_1_DROP_TABLES
+CHILD2_1_CREATE_TABLES
+TRUNCATE TABLE mysql.general_log;
+connection child2_2;
+CHILD2_2_DROP_TABLES
+CHILD2_2_CREATE_TABLES
+TRUNCATE TABLE mysql.general_log;
+connection child2_3;
+CHILD2_3_DROP_TABLES
+CHILD2_3_CREATE_TABLES
+TRUNCATE TABLE mysql.general_log;
+connection master_1;
+DROP TABLE IF EXISTS tbl_a;
+DROP TABLE IF EXISTS tbl_b;
+CREATE TABLE tbl_a (
+value int NOT NULL
+) MASTER_1_ENGINE MASTER_1_CHARSET MASTER_1_COMMENT_2_1
+SET spider_skip_parallel_search=0;
+INSERT INTO tbl_a VALUES (1),(2),(3),(4),(5),(6),(7),(8),(9);
+SHOW STATUS LIKE 'Spider_parallel_search';
+Variable_name	Value
+Spider_parallel_search	0
+INSERT INTO tbl_a SELECT value + 10 FROM tbl_a;
+SHOW STATUS LIKE 'Spider_parallel_search';
+Variable_name	Value
+Spider_parallel_search	1
+SELECT SQL_NO_CACHE value FROM tbl_a;
+value
+4
+5
+11
+16
+17
+1
+6
+7
+12
+13
+18
+19
+2
+3
+8
+9
+14
+15
+SHOW STATUS LIKE 'Spider_parallel_search';
+Variable_name	Value
+Spider_parallel_search	2
+SELECT value FROM tbl_a;
+value
+4
+5
+11
+16
+17
+1
+6
+7
+12
+13
+18
+19
+2
+3
+8
+9
+14
+15
+SHOW STATUS LIKE 'Spider_parallel_search';
+Variable_name	Value
+Spider_parallel_search	3
+SET spider_skip_parallel_search=3;
+INSERT INTO tbl_a SELECT value + 20 FROM tbl_a;
+SHOW STATUS LIKE 'Spider_parallel_search';
+Variable_name	Value
+Spider_parallel_search	3
+SELECT SQL_NO_CACHE value FROM tbl_a;
+value
+4
+5
+11
+16
+17
+22
+23
+28
+29
+34
+35
+1
+6
+7
+12
+13
+18
+19
+24
+25
+31
+36
+37
+2
+3
+8
+9
+14
+15
+21
+26
+27
+32
+33
+38
+39
+SHOW STATUS LIKE 'Spider_parallel_search';
+Variable_name	Value
+Spider_parallel_search	3
+SELECT value FROM tbl_a;
+value
+4
+5
+11
+16
+17
+22
+23
+28
+29
+34
+35
+1
+6
+7
+12
+13
+18
+19
+24
+25
+31
+36
+37
+2
+3
+8
+9
+14
+15
+21
+26
+27
+32
+33
+38
+39
+SHOW STATUS LIKE 'Spider_parallel_search';
+Variable_name	Value
+Spider_parallel_search	4
+
+deinit
+connection master_1;
+DROP DATABASE IF EXISTS auto_test_local;
+connection child2_1;
+DROP DATABASE IF EXISTS auto_test_remote;
+SET GLOBAL log_output = @old_log_output;
+connection child2_2;
+DROP DATABASE IF EXISTS auto_test_remote2;
+SET GLOBAL log_output = @old_log_output;
+connection child2_3;
+DROP DATABASE IF EXISTS auto_test_remote3;
+SET GLOBAL log_output = @old_log_output;
+connection master_1;
+SET spider_skip_parallel_search = @old_skip_parallel_search;
+for master_1
+for child2
+child2_1
+child2_2
+child2_3
+for child3
+child3_1
+child3_2
+child3_3
+
+end of test

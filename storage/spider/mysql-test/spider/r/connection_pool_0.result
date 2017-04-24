@@ -1,0 +1,82 @@
+for master_1
+for child2
+child2_1
+child2_2
+child2_3
+for child3
+child3_1
+child3_2
+child3_3
+connection master_1;
+SET @old_max_connections = @@global.spider_max_connections;
+SET GLOBAL spider_max_connections=1;
+SET @old_conn_wait_timeout = @@global.spider_conn_wait_timeout;
+SET GLOBAL spider_conn_wait_timeout=1;
+connection default;
+SET @old_conn_recycle_mode = @@session.spider_conn_recycle_mode;
+SET spider_conn_recycle_mode=0;
+
+drop and create databases
+connection master_1;
+DROP DATABASE IF EXISTS auto_test_local;
+CREATE DATABASE auto_test_local;
+USE auto_test_local;
+connection child2_1;
+SET @old_log_output = @@global.log_output;
+SET GLOBAL log_output = 'TABLE,FILE';
+DROP DATABASE IF EXISTS auto_test_remote;
+CREATE DATABASE auto_test_remote;
+USE auto_test_remote;
+
+create table and insert
+connection child2_1;
+CHILD2_1_DROP_TABLES
+CHILD2_1_CREATE_TABLES
+TRUNCATE TABLE mysql.general_log;
+TRUNCATE TABLE mysql.general_log;
+connection master_1;
+DROP TABLE IF EXISTS tbl_a;
+DROP TABLE IF EXISTS tbl_b;
+CREATE TABLE tbl_a (
+value int NOT NULL
+) MASTER_1_ENGINE MASTER_1_CHARSET MASTER_1_COMMENT_2_1
+connection master_1;
+BEGIN;
+INSERT INTO tbl_a VALUES (1),(2),(3),(4),(5),(6),(7),(8),(9);
+connection default;
+SELECT value FROM auto_test_local.tbl_a LIMIT 3, 10;
+ERROR HY000: Too many connections between spider and remote
+connection master_1;
+COMMIT;
+connection default;
+SELECT value FROM auto_test_local.tbl_a LIMIT 3, 10;
+value
+4
+5
+6
+7
+8
+9
+
+deinit
+connection master_1;
+DROP DATABASE IF EXISTS auto_test_local;
+connection child2_1;
+DROP DATABASE IF EXISTS auto_test_remote;
+SET GLOBAL log_output = @old_log_output;
+connection master_1;
+SET GLOBAL spider_max_connections = @old_max_connections;
+SET GLOBAL spider_conn_wait_timeout = @old_conn_wait_timeout;
+connection default;
+SET spider_conn_recycle_mode = @old_conn_recycle_mode;
+for master_1
+for child2
+child2_1
+child2_2
+child2_3
+for child3
+child3_1
+child3_2
+child3_3
+
+end of test
